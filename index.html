@@ -3,2501 +3,322 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Python 代码文档</title>
+<meta name="description" content="动态读取 GitHub 仓库中代码文件的代码文档。">
+<title>代码星图</title>
 <style>
-:root { color-scheme: light; --ink:#182230; --muted:#5d6978; --line:#dce3ea; --paper:#fff; --surface:#f5f7fa; --accent:#1769aa; --code:#101722; }
+:root { --ink:#4d3b5d; --muted:#8e7d9e; --paper:rgba(255,255,255,.88); --line:rgba(191,146,190,.3); --pink:#ef92b5; --pink-deep:#d95e93; --lilac:#9e8add; --aqua:#8fd9df; --code:#27243d; --code-top:#3b3558; }
 * { box-sizing:border-box; }
 html { scroll-behavior:smooth; }
-body { margin:0; color:var(--ink); background:var(--surface); font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif; }
-header { padding:2.75rem max(2rem,calc((100vw - 1380px)/2)); color:#fff; background:linear-gradient(125deg,#123a5a,#1d6a9f); }
-h1 { margin:0; font-size:clamp(1.8rem,4vw,2.65rem); }
-header p { margin:.45rem 0 0; opacity:.88; }
-.layout { max-width:1380px; margin:0 auto; display:grid; grid-template-columns:280px minmax(0,1fr); gap:2rem; padding:2rem; }
-nav { position:sticky; top:1rem; align-self:start; max-height:calc(100vh - 2rem); overflow:auto; padding:1.1rem 1.15rem; border:1px solid var(--line); border-radius:12px; background:var(--paper); }
-nav h2 { margin:0 0:.65rem; font-size:1rem; }
-nav ul { margin:.15rem 0; padding-left:1.15rem; list-style:none; }
-nav li { margin:.2rem 0; }
-nav a { color:var(--accent); text-decoration:none; overflow-wrap:anywhere; }
-nav a:hover { text-decoration:underline; }
-.nav-folder { font-weight:650; }
-main { min-width:0; padding:clamp(1.2rem,3vw,2.4rem); border:1px solid var(--line); border-radius:12px; background:var(--paper); box-shadow:0 6px 30px rgba(20,42,65,.05); }
-.directory { margin:0 0 2.5rem; }
-.directory > h1,.directory > h2,.directory > h3,.directory > h4,.directory > h5,.directory > h6 { margin:2.7rem 0 1rem; padding-bottom:.45rem; border-bottom:2px solid #b9d6e9; color:#163b58; }
-.directory:first-child > h1,.directory:first-child > h2 { margin-top:0; }
-.directory h1 { font-size:1.85rem; } .directory h2 { font-size:1.55rem; } .directory h3 { font-size:1.3rem; } .directory h4,.directory h5,.directory h6 { font-size:1.1rem; }
-.python-file { margin:1.3rem 0 1.8rem; scroll-margin-top:1rem; }
-.file-name { margin:0 0 .65rem; color:#263c4e; font:600 1.02rem/1.4 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; overflow-wrap:anywhere; }
-pre { margin:0; padding:1rem 1.15rem; overflow:auto; border-radius:9px; background:var(--code); color:#e8eef7; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; tab-size:4; }
-code { font-family:inherit; }
-.empty { color:var(--muted); }
-@media (max-width:850px) { .layout { grid-template-columns:1fr; padding:1rem; gap:1rem; } nav { position:static; max-height:none; } header { padding:2rem 1rem; } main { padding:1.2rem; } }
-@media print { body { background:#fff; } header { color:#000; background:#fff; padding:0 0 1rem; } .layout { display:block; padding:0; } nav { display:none; } main { border:0; box-shadow:none; padding:0; } pre { white-space:pre-wrap; overflow:visible; } }
+body { min-height:100vh; margin:0; overflow-x:hidden; color:var(--ink); background:radial-gradient(circle at 8% 13%,rgba(255,255,255,.98) 0 2px,transparent 2.8px),radial-gradient(circle at 88% 11%,rgba(255,255,255,.92) 0 1.5px,transparent 2.4px),radial-gradient(circle at 72% 40%,rgba(255,255,255,.8) 0 1px,transparent 2px),linear-gradient(135deg,#f6d4e4 0%,#eadcf7 43%,#c9ecf1 100%); background-size:105px 105px,160px 160px,80px 80px,100% 100%; font:15px/1.7 "Microsoft YaHei","Yu Gothic UI",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+body::before,body::after { position:fixed; z-index:-1; width:24rem; height:24rem; content:""; filter:blur(2px); opacity:.55; pointer-events:none; }
+body::before { top:6rem; left:-11rem; border-radius:55% 45% 63% 37%; background:#ffb2cf; }
+body::after { right:-12rem; bottom:1rem; border-radius:43% 57% 35% 65%; background:#9cdbeb; }
+header { position:relative; overflow:hidden; padding:3.25rem max(2rem,calc((100vw - 1380px)/2)); color:#fff; text-align:center; text-shadow:0 2px 12px rgba(92,48,104,.28); background:linear-gradient(120deg,#e576aa 0%,#ae94e1 50%,#78cbd8 100%); }
+header::before { position:absolute; top:-6.5rem; left:-4rem; width:18rem; height:18rem; border:2px solid rgba(255,255,255,.25); border-radius:50%; content:""; box-shadow:20rem 8rem 0 -5rem rgba(255,255,255,.13),51rem -4rem 0 -4rem rgba(255,255,255,.16); }
+header::after { position:absolute; right:7%; bottom:-2.1rem; color:rgba(255,255,255,.15); content:"✦  ♡  ✦  ♡  ✦"; font-size:clamp(2.5rem,6vw,5.2rem); letter-spacing:.25em; transform:rotate(-7deg); }
+h1 { position:relative; z-index:1; margin:0; font-family:"Yu Mincho","Noto Serif CJK SC","Microsoft YaHei",serif; font-size:clamp(2rem,4vw,3rem); font-weight:800; letter-spacing:.12em; }
+header p { position:relative; z-index:1; margin:.6rem 0 0; font-weight:600; letter-spacing:.05em; opacity:.94; }
+.layout { max-width:1400px; margin:0 auto; padding:2rem; }
+nav,main,.repo-panel { border:1px solid rgba(255,255,255,.78); border-radius:22px; background:var(--paper); box-shadow:0 15px 45px rgba(103,76,129,.14),inset 0 1px 0 rgba(255,255,255,.8); backdrop-filter:blur(14px); }
+nav { max-height:22rem; margin-bottom:1.6rem; overflow:auto; padding:1.15rem 1.25rem 1.35rem; }
+nav::before { display:block; margin:-.2rem 0 .6rem; color:var(--pink-deep); content:"✦ contents ✦"; font-size:.76rem; font-weight:800; letter-spacing:.12em; text-align:center; }
+nav h2 { margin:0 0 .7rem; color:#725486; font-size:1.05rem; text-align:center; }
+nav ul { margin:.18rem 0; padding-left:1rem; list-style:none; }
+nav li { margin:.22rem 0; }
+nav a { display:inline-block; color:#9b4e77; text-decoration:none; overflow-wrap:anywhere; transition:transform .18s ease,color .18s ease; }
+nav a::before { content:"♡ "; color:var(--pink); }
+nav a:hover { color:var(--pink-deep); transform:translateX(3px); }
+.nav-folder { color:#715a9b; font-weight:800; }
+.nav-folder::before { content:"✿ "; color:#e681aa; }
+.nav-folder-details { margin:.15rem 0; }
+.nav-folder-details > summary { padding:.12rem .25rem; border-radius:8px; cursor:pointer; list-style:none; transition:background .18s ease; }
+.nav-folder-details > summary::-webkit-details-marker { display:none; }
+.nav-folder-details > summary::after { float:right; color:#c88bad; content:"＋"; font-size:.8rem; }
+.nav-folder-details[open] > summary::after { content:"－"; }
+.nav-folder-details > summary:hover { background:rgba(239,146,181,.12); }
+main { min-width:0; padding:clamp(1.3rem,3vw,2.7rem); }
+.repo-panel { margin-bottom:1.6rem; padding:1.1rem 1.2rem 1.2rem; }
+.repo-panel h2 { margin:0 0 .7rem; color:#72507e; font-family:"Yu Mincho","Noto Serif CJK SC","Microsoft YaHei",serif; font-size:1.3rem; }
+.repo-panel h2::before { margin-right:.45rem; color:var(--pink); content:"✦"; }
+.repo-form { display:grid; grid-template-columns:minmax(0,1fr) 120px auto; gap:.65rem; align-items:end; }
+.field { min-width:0; }
+.field label { display:block; margin:0 0 .25rem .15rem; color:#816c8c; font-size:.78rem; font-weight:800; }
+.field input { width:100%; min-width:0; padding:.65rem .75rem; color:var(--ink); border:1px solid rgba(196,142,190,.45); border-radius:10px; outline:0; background:rgba(255,255,255,.75); font:inherit; transition:border-color .18s,box-shadow .18s; }
+.field input:focus { border-color:var(--pink); box-shadow:0 0 0 3px rgba(239,146,181,.2); }
+.load-button { min-height:2.75rem; padding:.65rem 1rem; color:#fff; border:0; border-radius:999px; background:linear-gradient(110deg,#e977a8,#9b83d1); box-shadow:0 6px 15px rgba(167,103,159,.25); font:700 .9rem/1 "Microsoft YaHei",sans-serif; white-space:nowrap; cursor:pointer; transition:transform .18s ease,filter .18s ease; }
+.load-button:hover:not(:disabled),.load-button:focus-visible:not(:disabled) { filter:brightness(1.06); transform:translateY(-2px); }
+.load-button:disabled { cursor:wait; opacity:.6; }
+.status { min-height:1.55rem; margin:.8rem 0 0; color:var(--muted); font-size:.9rem; }
+.status[data-state="error"] { color:#c3536c; font-weight:700; }
+.status[data-state="success"] { color:#3e9586; font-weight:700; }
+.directory { margin:0 0 1.1rem; }
+.directory > summary { display:flex; align-items:center; gap:.55rem; margin:2.9rem 0 1.1rem; padding-bottom:.55rem; color:#72507e; border-bottom:2px solid rgba(231,138,180,.35); cursor:pointer; list-style:none; font-family:"Yu Mincho","Noto Serif CJK SC","Microsoft YaHei",serif; }
+.directory > summary::-webkit-details-marker { display:none; }
+.directory > summary::before { color:var(--pink); content:"✿"; }
+.directory > summary::after { margin-left:auto; color:#c88bad; content:"⌄"; font-family:Arial,sans-serif; font-size:1.15rem; transition:transform .18s ease; }
+.directory[open] > summary::after { transform:rotate(180deg); }
+.directory > summary:hover { color:var(--pink-deep); }
+.directory h1 { font-size:1.95rem; }.directory h2 { font-size:1.62rem; }.directory h3 { font-size:1.34rem; }.directory h4,.directory h5,.directory h6 { font-size:1.1rem; }
+.directory > .directory { margin-left:1rem; }
+.code-file { position:relative; margin:1.4rem 0 2rem; scroll-margin-top:1rem; }
+.code-file + .code-file { margin-top:1.7rem; }
+.file-name { margin:0; padding:.68rem 4.9rem .68rem 1rem; color:#fff; border-radius:14px 14px 0 0; background:linear-gradient(100deg,#dc78a6,#a385d1); box-shadow:0 7px 18px rgba(167,103,159,.2); font:700 .94rem/1.35 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; overflow-wrap:anywhere; }
+.file-name::before { margin-right:.45rem; content:"✦"; color:#fff1a8; }
+.copy-button { position:absolute; z-index:1; top:.43rem; right:.58rem; display:inline-flex; align-items:center; gap:.32rem; min-height:2rem; padding:.38rem .68rem; color:#735179; border:1px solid rgba(255,255,255,.85); border-radius:999px; outline:0; background:rgba(255,255,255,.92); box-shadow:0 3px 9px rgba(77,40,79,.15); font:700 .77rem/1 "Microsoft YaHei",sans-serif; cursor:pointer; transition:transform .18s ease,background .18s ease,color .18s ease; }
+.copy-button:hover:not(:disabled),.copy-button:focus-visible:not(:disabled) { color:#fff; background:#ef7faa; transform:translateY(-2px) scale(1.03); }
+.copy-button:disabled { cursor:wait; opacity:.7; }.copy-button.is-copied { color:#fff; background:#66bfae; }.copy-button.is-failed { color:#fff; background:#cf6a79; }
+.copy-button .copy-icon { font-size:.95rem; line-height:1; }
+pre { position:relative; min-height:4.8rem; margin:0; padding:1.3rem 1.2rem; overflow:auto; border:1px solid rgba(255,255,255,.14); border-top:0; border-radius:0 0 14px 14px; background:linear-gradient(135deg,var(--code-top),var(--code)); color:#f9f3ff; box-shadow:0 12px 24px rgba(45,33,67,.16); font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace; tab-size:4; }
+pre::before { position:absolute; top:.5rem; right:1rem; color:rgba(255,255,255,.22); content:"● ● ●"; letter-spacing:.16em; font-size:.55rem; } code { font-family:inherit; }.loading-code { color:#cfc8e6; font-family:"Microsoft YaHei",sans-serif; }.empty { color:var(--muted); }
+@media (max-width:850px) { .layout { grid-template-columns:1fr; gap:1rem; padding:1rem; } nav { position:static; max-height:none; } header { padding:2.5rem 1rem; } main { padding:1.25rem; } }
+@media (max-width:610px) { .repo-form { grid-template-columns:1fr 1fr; }.repo-form .field:first-child { grid-column:1 / -1; }.load-button { grid-column:1 / -1; } }
+@media (max-width:420px) { h1 { letter-spacing:.06em; }.layout { padding:.65rem; }main { padding:1rem; }.file-name { font-size:.82rem; } }
+@media print { body { background:#fff; } body::before,body::after,header::before,header::after { display:none; } header { padding:0 0 1rem; color:#000; text-shadow:none; background:#fff; }.layout { display:block; padding:0; }nav,.repo-panel,.copy-button { display:none; }main { padding:0; border:0; box-shadow:none; }pre { overflow:visible; white-space:pre-wrap; color:#000; border:1px solid #bbb; background:#fff; box-shadow:none; }.file-name { color:#000; background:#eee; } }
 </style>
 </head>
 <body>
 <header>
-  <h1>小河的Python 代码文档</h1>
+  <h1>代码星图</h1>
+  <p>从 GitHub 仓库实时读取 · 展示常见代码文件</p>
 </header>
 <div class="layout">
-  <nav aria-label="文件目录"><h2>目录</h2><ul><li><span class="nav-folder">4_读取轨迹文件实现turtle绘图</span><ul><li><a href="#file-4-读取轨迹文件实现turtle绘图-fyt-双if-py">fyt_双if.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-fyt-多if-py">fyt_多if.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-fyt-求圆的面积和周长-py">fyt_求圆的面积和周长.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-n的阶乘-py">n的阶乘.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-世界-你好--py">世界，你好！.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-人民币兑换-py">人民币兑换.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-伪随机数-py">伪随机数.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-分别统计输入中字母-数字的个数-py">分别统计输入中字母、数字的个数.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-列表基本操作-py">列表基本操作.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-列表求和-py">列表求和.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-列表转字典-py">列表转字典.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-删除重复字符-py">删除重复字符.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-判断素数-py">判断素数.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-利用turtle绘制六角星-py">利用turtle绘制六角星.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-前驱-后继字符-py">前驱、后继字符.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-加密文件-文件版--py">加密文件（文件版）.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-单if-py">单if.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-各位数字和-py">各位数字和.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-回文判断-py">回文判断.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-回文数-py">回文数.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-基于turtle库自定义绘制圆形函数来绘制同心彩色圆形-py">基于turtle库自定义绘制圆形函数来绘制同心彩色圆形.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-天天向上的力量-C-py">天天向上的力量 C.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-字符串偶数位置截取输出-py">字符串偶数位置截取输出.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-字符串合并与拆分-py">字符串合并与拆分.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-工资-py">工资.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-找最大最小整数-py">找最大最小整数.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-换钱的交易-py">换钱的交易.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-摄氏华氏温度转换-py">摄氏华氏温度转换.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-数值翻转-py">数值翻转.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-数字排序-py">数字排序.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-整数各位数字求和-非函数版--py">整数各位数字求和（非函数版）.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-整数合并-非函数版--py">整数合并（非函数版）.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-文件复制-py">文件复制.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-时钟指针-py">时钟指针.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-最大小值-py">最大小值.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-求三角形面积-py">求三角形面积.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-求正整数数字和2-py">求正整数数字和2.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-求水仙花数-py">求水仙花数.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-生兔子问题-递归思想--py">生兔子问题(递归思想).py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-简易计算器-py">简易计算器.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-素数判断-非函数版--py">素数判断（非函数版）.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-绘制彩色标靶盘-py">绘制彩色标靶盘.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-统计文件中单词-字符数-py">统计文件中单词、字符数.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-自动生成列表-py">自动生成列表.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-英文诗歌统计-py">英文诗歌统计.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-计算π值-迭代N次--py">计算π值（迭代N次）.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-计算平均值-py">计算平均值.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-计算年龄-py">计算年龄.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-说句心里话-py">说句心里话.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-读取轨迹文件实现turtle绘图-py">读取轨迹文件实现turtle绘图.py</a></li><li><a href="#file-4-读取轨迹文件实现turtle绘图-输出下一秒-py">输出下一秒.py</a></li></ul></li><li><span class="nav-folder">Pthon实验题</span><ul><li><a href="#file-Pthon实验题-BMI-计算与分类-py">BMI 计算与分类.py</a></li><li><a href="#file-Pthon实验题-fyt-双if-py">fyt_双if.py</a></li><li><a href="#file-Pthon实验题-fyt-多if-py">fyt_多if.py</a></li><li><a href="#file-Pthon实验题-fyt-求圆的面积和周长-py">fyt_求圆的面积和周长.py</a></li><li><a href="#file-Pthon实验题-n的阶乘-py">n的阶乘.py</a></li><li><a href="#file-Pthon实验题-世界-你好--py">世界，你好！.py</a></li><li><a href="#file-Pthon实验题-人民币兑换-py">人民币兑换.py</a></li><li><a href="#file-Pthon实验题-伪随机数-py">伪随机数.py</a></li><li><a href="#file-Pthon实验题-修改列表偶数位置元素-py">修改列表偶数位置元素.py</a></li><li><a href="#file-Pthon实验题-分别统计输入中字母-数字的个数-py">分别统计输入中字母、数字的个数.py</a></li><li><a href="#file-Pthon实验题-列表基本操作-py">列表基本操作.py</a></li><li><a href="#file-Pthon实验题-列表求和-py">列表求和.py</a></li><li><a href="#file-Pthon实验题-列表转字典-py">列表转字典.py</a></li><li><a href="#file-Pthon实验题-删除重复字符-py">删除重复字符.py</a></li><li><a href="#file-Pthon实验题-判断可逆素数-py">判断可逆素数.py</a></li><li><a href="#file-Pthon实验题-判断素数-py">判断素数.py</a></li><li><a href="#file-Pthon实验题-利用turtle绘制六角星-py">利用turtle绘制六角星.py</a></li><li><a href="#file-Pthon实验题-前驱-后继字符-py">前驱、后继字符.py</a></li><li><a href="#file-Pthon实验题-加密文件-文件版--py">加密文件（文件版）.py</a></li><li><a href="#file-Pthon实验题-单if-py">单if.py</a></li><li><a href="#file-Pthon实验题-各位数字和-py">各位数字和.py</a></li><li><a href="#file-Pthon实验题-回文判断-py">回文判断.py</a></li><li><a href="#file-Pthon实验题-回文数-py">回文数.py</a></li><li><a href="#file-Pthon实验题-在字典中寻找最高分-py">在字典中寻找最高分.py</a></li><li><a href="#file-Pthon实验题-基于turtle库自定义绘制圆形函数来绘制同心彩色圆形-py">基于turtle库自定义绘制圆形函数来绘制同心彩色圆形.py</a></li><li><a href="#file-Pthon实验题-天天向上的力量-C-py">天天向上的力量 C.py</a></li><li><a href="#file-Pthon实验题-字符串偶数位置截取输出-py">字符串偶数位置截取输出.py</a></li><li><a href="#file-Pthon实验题-字符串合并与拆分-py">字符串合并与拆分.py</a></li><li><a href="#file-Pthon实验题-字符串拼接-py">字符串拼接.py</a></li><li><a href="#file-Pthon实验题-安全生产风险评估-py">安全生产风险评估.py</a></li><li><a href="#file-Pthon实验题-工资-py">工资.py</a></li><li><a href="#file-Pthon实验题-找最大最小整数-py">找最大最小整数.py</a></li><li><a href="#file-Pthon实验题-换钱的交易-py">换钱的交易.py</a></li><li><a href="#file-Pthon实验题-摄氏华氏温度转换-py">摄氏华氏温度转换.py</a></li><li><a href="#file-Pthon实验题-数值翻转-py">数值翻转.py</a></li><li><a href="#file-Pthon实验题-数字排序-py">数字排序.py</a></li><li><a href="#file-Pthon实验题-整数各位数字求和-非函数版--py">整数各位数字求和（非函数版）.py</a></li><li><a href="#file-Pthon实验题-整数合并-非函数版--py">整数合并（非函数版）.py</a></li><li><a href="#file-Pthon实验题-文件复制-py">文件复制.py</a></li><li><a href="#file-Pthon实验题-时钟指针-py">时钟指针.py</a></li><li><a href="#file-Pthon实验题-最大小值-py">最大小值.py</a></li><li><a href="#file-Pthon实验题-求三角形面积-py">求三角形面积.py</a></li><li><a href="#file-Pthon实验题-求正整数数字和2-py">求正整数数字和2.py</a></li><li><a href="#file-Pthon实验题-求水仙花数-py">求水仙花数.py</a></li><li><a href="#file-Pthon实验题-火灾应急响应-py">火灾应急响应.py</a></li><li><a href="#file-Pthon实验题-生兔子问题-递归思想--py">生兔子问题(递归思想).py</a></li><li><a href="#file-Pthon实验题-简易计算器-py">简易计算器.py</a></li><li><a href="#file-Pthon实验题-素数判断-非函数版--py">素数判断（非函数版）.py</a></li><li><a href="#file-Pthon实验题-线性计算圆的面积和周长-py">线性计算圆的面积和周长.py</a></li><li><a href="#file-Pthon实验题-绘制彩色标靶盘-py">绘制彩色标靶盘.py</a></li><li><a href="#file-Pthon实验题-统计文件中单词-字符数-py">统计文件中单词、字符数.py</a></li><li><a href="#file-Pthon实验题-自动生成列表-py">自动生成列表.py</a></li><li><a href="#file-Pthon实验题-英文诗歌统计-py">英文诗歌统计.py</a></li><li><a href="#file-Pthon实验题-蒙特卡洛法求圆周率-py">蒙特卡洛法求圆周率.py</a></li><li><a href="#file-Pthon实验题-计算π值-迭代N次--py">计算π值（迭代N次）.py</a></li><li><a href="#file-Pthon实验题-计算平均值-py">计算平均值.py</a></li><li><a href="#file-Pthon实验题-计算年龄-py">计算年龄.py</a></li><li><a href="#file-Pthon实验题-说句心里话-py">说句心里话.py</a></li><li><a href="#file-Pthon实验题-读取轨迹文件实现turtle绘图-py">读取轨迹文件实现turtle绘图.py</a></li><li><a href="#file-Pthon实验题-购物车总价计算-py">购物车总价计算.py</a></li><li><a href="#file-Pthon实验题-输出下一秒-py">输出下一秒.py</a></li></ul></li></ul></nav>
+  <nav aria-label="文件目录"><h2>仓库目录</h2><div id="navigation" class="empty">等待读取仓库…</div></nav>
   <main>
-    <section class="directory depth-1"><h1>4_读取轨迹文件实现turtle绘图</h1><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-fyt-双if-py"><h2 class="file-name">fyt_双if.py</h2><pre><code class="language-python">user = input()
-
-
-
-if user == &#x27;ncist&#x27;:
-
-    print(&quot;success!&quot;)
-
-else:
-
-    print(&quot;wrong!&quot;)
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-fyt-多if-py"><h2 class="file-name">fyt_多if.py</h2><pre><code class="language-python">x = int(input())
-
-
-
-if x &gt; 1970 and x &lt; 1979:
-
-    print(&#x27;after 70&#x27;)
-
-else:
-
-    if x &gt; 1980 and x &lt; 1989:
-
-        print(&#x27;after 80&#x27;)
-
-    else:
-
-        if x &gt; 1990 and x &lt; 1999:
-
-            print(&quot;after 90&quot;)
-
-        else:
-
-            if x &gt; 2000 and x &lt; 2009:
-
-                print(&quot;after 00&quot;)
-
-            else:
-
-                print(&quot;out of range!&quot;)
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-fyt-求圆的面积和周长-py"><h2 class="file-name">fyt_求圆的面积和周长.py</h2><pre><code class="language-python">a=int(input())
-b=3.14*a*a
-c=3.14*2*a
-print(&#x27;{:.2f}&#x27;.format(b)+&quot;,&quot;+&#x27;{:.2f}&#x27;.format(c))
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-n的阶乘-py"><h2 class="file-name">n的阶乘.py</h2><pre><code class="language-python">def a(x):
-
-    b=1
-
-    for c in range(1,x+1):
-
-        b=b*c
-
-    return b
-
-d=int(input())
-
-e=a(d)
-
-print(e)
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-世界-你好--py"><h2 class="file-name">世界，你好！.py</h2><pre><code class="language-python">print(&quot;hello world!&quot;) 
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-人民币兑换-py"><h2 class="file-name">人民币兑换.py</h2><pre><code class="language-python">x=float(input())
-
-ten=int(x/10)
-
-five=int(x%10/5)
-
-two=int((x-ten*10-five*5)/2)
-
-one=int((x-ten*10-five*5-two*2)/1)
-
-print(ten,five,two,one,end=&quot; &quot;)
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-伪随机数-py"><h2 class="file-name">伪随机数.py</h2><pre><code class="language-python">a=int(input())
-
-import random
-
-random.seed(a)
-
-b=random.randint(1,100)
-
-print(b,b,b)
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-分别统计输入中字母-数字的个数-py"><h2 class="file-name">分别统计输入中字母、数字的个数.py</h2><pre><code class="language-python">a=input()
-
-b=0
-
-c=0
-
-d=len(a)
-
-for e in range(d):
-
-    f=a[e]
-
-    if(f.isdigit()==True):
-
-        b=b+1
-
-    elif(f.isalpha()==True):
-
-        c=c+1
-
-print(c,b)
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-列表基本操作-py"><h2 class="file-name">列表基本操作.py</h2><pre><code class="language-python">a=list(input().split(&quot; &quot;))
-
-b=list(input().split(&quot; &quot;))
-
-c=a+b
-
-d=len(c)
-
-c.insert(d,&quot;123&quot;)
-
-c.pop(0)
-
-c=list(map(int,c))
-
-print(c)
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-列表求和-py"><h2 class="file-name">列表求和.py</h2><pre><code class="language-python">a=input().split(&quot;,&quot;)
-
-b=map(int,a)
-
-c=sum(b)
-
-print(c)
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-列表转字典-py"><h2 class="file-name">列表转字典.py</h2><pre><code class="language-python">a=list(input().split(&quot;,&quot;))
-
-b=list(input().split(&quot;,&quot;))
-
-c=int(input())
-
-d=zip(a,b)
-
-e=dict(d)
-
-g=a[c]
-
-f=e.get(g)
-
-print(f)
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-删除重复字符-py"><h2 class="file-name">删除重复字符.py</h2><pre><code class="language-python">a=input()
-
-b=[]
-
-c=len(a)
-
-for d in  range(c):
-
-    e=a[d]
-
-    f=len(b)
-
-    i=1
-
-    for g in range(f):
-
-        h=b[g]
-
-        if(h==e):
-
-            i=0
-
-    if(i==0):
-
-        pass
-
-    else:
-
-        b.append(e)
-
-j=&quot;&quot;.join(b)
-
-print(j)
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-判断素数-py"><h2 class="file-name">判断素数.py</h2><pre><code class="language-python">def a(b):
-
-    c=1
-
-    if(b&lt;=1):
-
-        print(0)
-
-    elif(b==2):
-
-        print(1)
-
-    else:
-
-        for d in range(2,b):
-
-            if(b%d==0):
-
-                c=0
-
-                break
-
-        if(c==0):
-
-            print(0)
-
-        else:
-
-            print(1)
-
-e=int(input())
-
-f=a(e)
-
-
-
-
-
-
-
-    
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-利用turtle绘制六角星-py"><h2 class="file-name">利用turtle绘制六角星.py</h2><pre><code class="language-python">import turtle as a
-
-for b in range(6):
-
-    a.fillcolor(&quot;yellow&quot;)
-
-    a.begin_fill()
-
-    a.forward(10)
-
-    a.right(120)
-
-    a.forward(10)
-
-    a.right(120)
-
-    a.forward(10)
-
-    a.end_fill()
-
-    a.penup()
-
-    a.right(120)
-
-    a.forward(10)
-
-    a.pendown()
-
-    a.left(60)
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-前驱-后继字符-py"><h2 class="file-name">前驱、后继字符.py</h2><pre><code class="language-python">x=input()
-
-
-
-pre=ord(x)-1
-
-aft=ord(x)+1
-
-
-
-print(chr(pre),x,chr(aft),end=&quot; &quot;)
-
-print(&quot;\n&quot;)
-
-print(pre,ord(x),aft)
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-加密文件-文件版--py"><h2 class="file-name">加密文件（文件版）.py</h2><pre><code class="language-python">import os
-
-c=input()
-
-d=len(c)
-
-e={}
-
-m=97
-
-for f in range(d):
-
-    g=c[f]
-
-    j=0
-
-    for h in range(f):
-
-        i=c[h]
-
-        if(i==g):
-
-            j=1
-
-    if(j==0):
-
-        k=chr(m)
-
-        m=m+1
-
-        l={k:g}
-
-        e.update(l)
-
-for n in range(122,96,-1):
-
-    o=chr(n)
-
-    j=0
-
-    for p in range(d):
-
-        g=c[p]
-
-        if(o==g):
-
-            j=1
-
-    if(j==0):
-
-        k=chr(m)
-
-        m=m+1
-
-        l={k:o}
-
-        e.update(l)
-
-a=open(&quot;encrypt.txt&quot;)
-
-b=a.read()
-
-q=len(b)
-
-s=&quot;&quot;
-
-for r in range(q):
-
-    g=b[r]
-
-    if(g.isalpha()==True):
-
-        s=s+e.get(g)
-
-    else:
-
-        s=s+g
-
-u=open(&quot;output.txt&quot;,&quot;w+&quot;)
-
-u.write(s)
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-单if-py"><h2 class="file-name">单if.py</h2><pre><code class="language-python">x = int(input())
-
-
-
-if x &gt; 200:
-
-    print(&quot;out of 200!&quot;)
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-各位数字和-py"><h2 class="file-name">各位数字和.py</h2><pre><code class="language-python">def a(b):
-
-    c=len(b)
-
-    e=0
-
-    for d in range(c):
-
-        h=int(b[d])
-
-        e=e+h
-
-    return e
-
-f=input()
-
-g=a(f)
-
-print(g)
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-回文判断-py"><h2 class="file-name">回文判断.py</h2><pre><code class="language-python">a=input()
-
-b=a[::-1]
-
-if(a==b):
-
-    print(&quot;Yes&quot;)
-
-else:
-
-    print(&quot;No&quot;)
-
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-回文数-py"><h2 class="file-name">回文数.py</h2><pre><code class="language-python">def a(b,c):
-
-    for d in range(b,c+1):
-
-        h=str(d)
-
-        e=h[::-1]
-
-        if(e==h):
-
-            print(d)
-
-f,g=map(int,input().split(&quot; &quot;))
-
-a(f,g)
-
-
-
-    
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-基于turtle库自定义绘制圆形函数来绘制同心彩色圆形-py"><h2 class="file-name">基于turtle库自定义绘制圆形函数来绘制同心彩色圆形.py</h2><pre><code class="language-python">def a(b,c,d,e,f,g):
-
-    import turtle as h
-
-    h.penup()
-
-    h.goto(b,c-d)
-
-    h.pendown()
-
-    h.fillcolor(e)
-
-    h.begin_fill()
-
-    h.circle(d)
-
-    h.end_fill()
-
-i=[&quot;purple&quot;,&quot;red&quot;,&quot;blue&quot;,&quot;yellow&quot;,&quot;orange&quot;,&quot;coral&quot;,&quot;brown&quot;,&quot;yellow&quot;,&quot;fuchsia&quot;]
-
-for j in range(1,10):
-
-    k=10-j
-
-    l=k-1
-
-    a(0,0,k*10,i[l],0,0)
-
-    
-
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-天天向上的力量-C-py"><h2 class="file-name">天天向上的力量 C.py</h2><pre><code class="language-python">n = float(input())*0.001
-
-i = j = 0
-
-x = y = 1.0
-
-
-
-while i &lt; 365:
-
-    x *= 1+n
-
-    i += 1
-
-
-
-while j &lt; 365:
-
-    y *= 1-n
-
-    j += 1
-
-
-
-z = x/y
-
-
-
-print(&quot;{:.2f},{:.2f},{:.0f}&quot;.format(x, y, z))
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-字符串偶数位置截取输出-py"><h2 class="file-name">字符串偶数位置截取输出.py</h2><pre><code class="language-python">x = input()
-
-y = x.lower()
-
-z = y[::2]
-
-
-
-print(z[::-1])
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-字符串合并与拆分-py"><h2 class="file-name">字符串合并与拆分.py</h2><pre><code class="language-python">a=input().split(&quot;,&quot;)
-
-d=&quot;&quot;.join(a)
-
-e=d.upper()
-
-b=list(e)
-
-print(e)
-
-print(b)
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-工资-py"><h2 class="file-name">工资.py</h2><pre><code class="language-python">a=float(input())
-
-if(a&lt;1000):
-
-    print(&#x27;{:.2f}&#x27;.format(a))
-
-elif(1000&lt;=a&lt;2000):
-
-    print(&#x27;{:.2f}&#x27;.format(0.9*a))
-
-elif(2000&lt;=a&lt;3000):
-
-    print(&#x27;{:.2f}&#x27;.format(0.85*a))
-
-elif(3000&lt;=a&lt;4000):
-
-    print(&#x27;{:.2f}&#x27;.format(0.8*a))
-
-else:
-
-    print(&#x27;{:.2f}&#x27;.format(0.75*a))
-
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-找最大最小整数-py"><h2 class="file-name">找最大最小整数.py</h2><pre><code class="language-python">a=int(input())
-
-b=map(int,input().split(&quot; &quot;))
-
-c=list(b)
-
-d=max(c)
-
-e=min(c)
-
-print(d,e)
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-换钱的交易-py"><h2 class="file-name">换钱的交易.py</h2><pre><code class="language-python">a=int(input())
-
-b=100000*a
-
-d=0
-
-for c in range(a):
-
-    d=d+2**c
-
-print(b)
-
-print(d)
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-摄氏华氏温度转换-py"><h2 class="file-name">摄氏华氏温度转换.py</h2><pre><code class="language-python">c = float(input())
-f = c*9/5+32
-print(&quot;{:.1f}&quot;.format(f))
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-数值翻转-py"><h2 class="file-name">数值翻转.py</h2><pre><code class="language-python">a=input()
-
-b=a[::-1]
-
-print(b)
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-数字排序-py"><h2 class="file-name">数字排序.py</h2><pre><code class="language-python">arr = input().split()
-
-n = len(arr)
-
-
-
-i = j = 0
-
-
-
-while(i &lt; n):
-
-    minIndex = i
-
-    j = i+1
-
-    while(j &lt; n):
-
-        if(float(arr[j]) &lt; float(arr[minIndex])):
-
-            minIndex = j
-
-        j += 1
-
-    arr[i], arr[minIndex] = arr[minIndex], arr[i]
-
-    i += 1
-
-
-
-print(arr[0]+&quot; &quot;+arr[1]+&quot; &quot;+arr[2])
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-整数各位数字求和-非函数版--py"><h2 class="file-name">整数各位数字求和（非函数版）.py</h2><pre><code class="language-python">x = input()
-
-s = 0
-
-
-
-for c in x:
-
-    s += int(c)
-
-
-
-print(s)
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-整数合并-非函数版--py"><h2 class="file-name">整数合并（非函数版）.py</h2><pre><code class="language-python">a,b=input().split(&quot; &quot;)
-
-c=a[0]
-
-d=a[1]
-
-e=b[0]
-
-f=b[1]
-
-g=d+f+c+e
-
-h=int(g)
-
-print(h)
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-文件复制-py"><h2 class="file-name">文件复制.py</h2><pre><code class="language-python">import shutil as a
-
-a.copyfile(&quot;filecopy.in&quot;,&quot;filecopy.out&quot;)
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-时钟指针-py"><h2 class="file-name">时钟指针.py</h2><pre><code class="language-python">a,b=input().split(&quot;:&quot;)
-
-c=int(a)
-
-d=int(b)
-
-e=c*30+d*0.5
-
-f=d*6
-
-g=e-f
-
-if(g&lt;0 and g&gt;-180):
-
-    g=0-g
-
-elif(g&gt;360):
-
-    g=g-360
-
-elif(g&gt;180 and g&lt;=360):
-
-    g=360-g
-
-print(&quot;{:.3f}&quot;.format(g))
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-最大小值-py"><h2 class="file-name">最大小值.py</h2><pre><code class="language-python">a=list(input().split(&#x27; &#x27;))
-
-b=max(a)
-
-c=min(a)
-
-print(b,c)
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-求三角形面积-py"><h2 class="file-name">求三角形面积.py</h2><pre><code class="language-python">import math
-
-
-
-a, b, c = input().split()
-
-
-
-a = float(a)
-
-b = float(b)
-
-c = float(c)
-
-
-
-s = (a+b+c)/2
-
-sum = float(s*(s-a)*(s-b)*(s-c))
-
-ans = math.sqrt(sum)
-
-
-
-print(&quot;{:.3f}&quot;.format(ans))
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-求正整数数字和2-py"><h2 class="file-name">求正整数数字和2.py</h2><pre><code class="language-python">a=int(input())
-b=a/100
-c=a/10
-d=int(b)
-e=int(c)
-f=e-10*d
-g=int(f)
-h=a-e*10
-i=h+g+d
-print(i)
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-求水仙花数-py"><h2 class="file-name">求水仙花数.py</h2><pre><code class="language-python">a=int(input())
-
-for i in range(100,a+1):
-
-    b=str(i)
-
-    c=int(b[0])
-
-    d=int(b[1])
-
-    e=int(b[2])
-
-    f=c*c*c+d*d*d+e*e*e
-
-    if(i==f):
-
-        print(i)
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-生兔子问题-递归思想--py"><h2 class="file-name">生兔子问题(递归思想).py</h2><pre><code class="language-python">def sum(n):
-
-    if n==1 or n==2:
-
-        return 1
-
-    else:
-
-        return sum(n-1)+sum(n-2)
-
-x=int(input())
-
-a=sum(x)
-
-print(a)
-
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-简易计算器-py"><h2 class="file-name">简易计算器.py</h2><pre><code class="language-python">a,b,c=input().split()
-
-d=int(a)
-
-e=int(b)
-
-if(c==&quot;*&quot;):
-
-    print(d*e)
-
-elif(c==&quot;+&quot;):
-
-    print(d+e)
-
-elif(c==&quot;-&quot;):
-
-    print(d-e)
-
-elif(c==&quot;/&quot;and d%e==0):
-
-    print(int(d/e))
-
-else:
-
-    print(&#x27;{:.2f}&#x27;.format(d/e))
-
-    
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-素数判断-非函数版--py"><h2 class="file-name">素数判断（非函数版）.py</h2><pre><code class="language-python">a=int(input())
-
-c=1
-
-if(a&lt;=1):
-
-    print(0)
-
-elif(a==2):
-
-    print(1)
-
-else:
-
-    for b in range(2,a):
-
-        if(a%b==0):
-
-            c=0
-
-            break
-
-    if(c==0):
-
-        print(c)
-
-    else:
-
-        print(1)
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-绘制彩色标靶盘-py"><h2 class="file-name">绘制彩色标靶盘.py</h2><pre><code class="language-python">import turtle as a
-
-c=[&quot;purple&quot;,&quot;red&quot;,&quot;blue&quot;,&quot;yellow&quot;,&quot;orange&quot;,&quot;coral&quot;,&quot;brown&quot;,&quot;yellow&quot;,&quot;fuchsia&quot;]
-
-for b in range(1,10):
-
-    d=10-b
-
-    e=d-1
-
-    a.penup()
-
-    a.goto(0,b*10)
-
-    a.pendown()
-
-    a.fillcolor(c[e])
-
-    a.begin_fill()
-
-    a.circle(d*10)
-
-    a.end_fill()
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-统计文件中单词-字符数-py"><h2 class="file-name">统计文件中单词、字符数.py</h2><pre><code class="language-python">a=open(&quot;in.txt&quot;)
-
-b=a.read()
-
-c=len(b)
-
-f=0
-
-g=0
-
-for d in range(c):
-
-    e=b[d]
-
-    if(e.isalpha()==True and f==0):
-
-        g=g+1
-
-        f=1
-
-    elif(e.isalpha()==True and f==1):
-
-        pass
-
-    else:
-
-        f=0
-
-print(g,c-1)
-
-        
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-自动生成列表-py"><h2 class="file-name">自动生成列表.py</h2><pre><code class="language-python">a,b=map(int,input().split())
-
-d=[]
-
-e=0
-
-for x in range(a,b+1,2):
-
-    d.append(x)
-
-    e=e+1
-
-print(d)
-
-print(e)
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-英文诗歌统计-py"><h2 class="file-name">英文诗歌统计.py</h2><pre><code class="language-python">x=&#x27;&#x27;&#x27;All that doth flow we cannot liquid name
-
-
-
-Or else would fire and water be the same;
-
-
-
-But that is liquid which is moist and wet
-
-
-
-Fire that property can never get.
-
-
-
-Then &#x27;tis not cold that doth the fire put out
-
-
-
-But &#x27;tis the wet that makes it die, no doubt.&#x27;&#x27;&#x27;
-
-print(len(x))
-
-print(x.find(&#x27;the&#x27;))
-
-print(x.rfind(&#x27;the&#x27;))
-
-print(x.count(&#x27;the&#x27;))
-
-print(x.isalpha())
-
-print(x.isdigit())
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-计算π值-迭代N次--py"><h2 class="file-name">计算π值（迭代N次）.py</h2><pre><code class="language-python">a=int(input())
-
-c=0
-
-for b in range(1,a+1):
-
-    c=c+(1/(2*b-1)*(-1)**b)
-
-d=4*c
-
-d=0-d
-
-print(&quot;{:.8f}&quot;.format(d))
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-计算平均值-py"><h2 class="file-name">计算平均值.py</h2><pre><code class="language-python">x, y, z = input().split()
-
-x = int(x)
-
-y = int(y)
-
-z = int(z)
-
-sum = x+y+z
-
-average = (x+y+z)/3
-
-
-
-print(sum)
-
-print(&quot;{:.2f}&quot;.format(average))
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-计算年龄-py"><h2 class="file-name">计算年龄.py</h2><pre><code class="language-python">a,b,c=input().split(&quot;.&quot;)
-
-d,e,f=input().split(&quot;.&quot;)
-
-A=int(a)
-
-B=int(b)
-
-C=int(c)
-
-D=int(d)
-
-E=int(e)
-
-F=int(f)
-
-G=D-A
-
-if(E&lt;B):
-
-    G=G-1
-
-elif(E==B and F&lt;C):
-
-    G=G-1
-
-print(G)    
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-说句心里话-py"><h2 class="file-name">说句心里话.py</h2><pre><code class="language-python">str1=input()
-
-str2=input()
-
-print(str1+&quot;,you are,&quot;+str2)
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-读取轨迹文件实现turtle绘图-py"><h2 class="file-name">读取轨迹文件实现turtle绘图.py</h2><pre><code class="language-python">import turtle
-
-import linecache as c
-
-for b in range(2,9):
-
-    d=c.getline(&quot;turtledata.txt&quot;,b)
-
-    f=d[:-1]
-
-    e=f.split(&quot;,&quot;)
-
-    e=list(map(int,e))
-
-    if(e[0]==0):
-
-        turtle.left(e[1])
-
-    else:
-
-        turtle.right(e[1])
-
-    turtle.colormode(255)
-
-    turtle.color(e[3],e[4],e[5])
-
-    turtle.pensize(e[6])
-
-    turtle.forward(e[2])
-
-    
-
-
-
-
-</code></pre></article><article class="python-file" id="file-4-读取轨迹文件实现turtle绘图-输出下一秒-py"><h2 class="file-name">输出下一秒.py</h2><pre><code class="language-python">#输出当前时间下一秒
-
-h,min,sec=input().split(&quot;:&quot;)
-
-
-
-sec1=int(sec)
-
-min1=int(min)
-
-h1=int(h)
-
-
-
-sec1+=1
-
-
-
-if(sec1==60):
-
-    min1+=1
-
-    sec1=0
-
-    if(min1==60):
-
-       h1+=1
-
-       min1=0
-
-       if(h1==24):
-
-          h1=0
-
-
-
-print(h1,min1,sec1,sep=&quot;:&quot;)
-
-
-
-
-</code></pre></article></section><section class="directory depth-1"><h1>Pthon实验题</h1><article class="python-file" id="file-Pthon实验题-BMI-计算与分类-py"><h2 class="file-name">BMI 计算与分类.py</h2><pre><code class="language-python"># 读取输入
-
-weight, height = map(float, input().split())
-
-
-
-# 计算BMI
-
-bmi = weight / (height ** 2)
-
-
-
-# 根据BMI值进行分类
-
-if bmi &lt; 18.5:
-
-    category = &quot;Underweight&quot;
-
-elif 18.5 &lt;= bmi &lt; 25:
-
-    category = &quot;Normal weight&quot;
-
-elif 25 &lt;= bmi &lt; 30:
-
-    category = &quot;Overweight&quot;
-
-else:
-
-    category = &quot;Obesity&quot;
-
-
-
-# 输出结果
-
-print(f&quot;{bmi:.2f} {category}&quot;)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-fyt-双if-py"><h2 class="file-name">fyt_双if.py</h2><pre><code class="language-python">user = input()
-
-
-
-if user == &#x27;ncist&#x27;:
-
-    print(&quot;success!&quot;)
-
-else:
-
-    print(&quot;wrong!&quot;)
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-fyt-多if-py"><h2 class="file-name">fyt_多if.py</h2><pre><code class="language-python">x = int(input())
-
-
-
-if x &gt; 1970 and x &lt; 1979:
-
-    print(&#x27;after 70&#x27;)
-
-else:
-
-    if x &gt; 1980 and x &lt; 1989:
-
-        print(&#x27;after 80&#x27;)
-
-    else:
-
-        if x &gt; 1990 and x &lt; 1999:
-
-            print(&quot;after 90&quot;)
-
-        else:
-
-            if x &gt; 2000 and x &lt; 2009:
-
-                print(&quot;after 00&quot;)
-
-            else:
-
-                print(&quot;out of range!&quot;)
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-fyt-求圆的面积和周长-py"><h2 class="file-name">fyt_求圆的面积和周长.py</h2><pre><code class="language-python">a=int(input())
-b=3.14*a*a
-c=3.14*2*a
-print(&#x27;{:.2f}&#x27;.format(b)+&quot;,&quot;+&#x27;{:.2f}&#x27;.format(c))
-</code></pre></article><article class="python-file" id="file-Pthon实验题-n的阶乘-py"><h2 class="file-name">n的阶乘.py</h2><pre><code class="language-python">def a(x):
-
-    b=1
-
-    for c in range(1,x+1):
-
-        b=b*c
-
-    return b
-
-d=int(input())
-
-e=a(d)
-
-print(e)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-世界-你好--py"><h2 class="file-name">世界，你好！.py</h2><pre><code class="language-python">print(&quot;hello world!&quot;) 
-</code></pre></article><article class="python-file" id="file-Pthon实验题-人民币兑换-py"><h2 class="file-name">人民币兑换.py</h2><pre><code class="language-python">x=float(input())
-
-ten=int(x/10)
-
-five=int(x%10/5)
-
-two=int((x-ten*10-five*5)/2)
-
-one=int((x-ten*10-five*5-two*2)/1)
-
-print(ten,five,two,one,end=&quot; &quot;)
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-伪随机数-py"><h2 class="file-name">伪随机数.py</h2><pre><code class="language-python">a=int(input())
-
-import random
-
-random.seed(a)
-
-b=random.randint(1,100)
-
-print(b,b,b)
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-修改列表偶数位置元素-py"><h2 class="file-name">修改列表偶数位置元素.py</h2><pre><code class="language-python">x=list(map(int,input().split(&#x27;,&#x27;)))
-
-y=x.copy()
-
-odd=1
-
-for i in range(len(y)):
-
-    if i%2 == 0:
-
-        y[i] = odd
-
-        odd += 2
-
-print(x)
-
-print(y)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-分别统计输入中字母-数字的个数-py"><h2 class="file-name">分别统计输入中字母、数字的个数.py</h2><pre><code class="language-python">a=input()
-
-b=0
-
-c=0
-
-d=len(a)
-
-for e in range(d):
-
-    f=a[e]
-
-    if(f.isdigit()==True):
-
-        b=b+1
-
-    elif(f.isalpha()==True):
-
-        c=c+1
-
-print(c,b)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-列表基本操作-py"><h2 class="file-name">列表基本操作.py</h2><pre><code class="language-python">a=list(input().split(&quot; &quot;))
-
-b=list(input().split(&quot; &quot;))
-
-c=a+b
-
-d=len(c)
-
-c.insert(d,&quot;123&quot;)
-
-c.pop(0)
-
-c=list(map(int,c))
-
-print(c)
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-列表求和-py"><h2 class="file-name">列表求和.py</h2><pre><code class="language-python">a=input().split(&quot;,&quot;)
-
-b=map(int,a)
-
-c=sum(b)
-
-print(c)
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-列表转字典-py"><h2 class="file-name">列表转字典.py</h2><pre><code class="language-python">a=list(input().split(&quot;,&quot;))
-
-b=list(input().split(&quot;,&quot;))
-
-c=int(input())
-
-d=zip(a,b)
-
-e=dict(d)
-
-g=a[c]
-
-f=e.get(g)
-
-print(f)
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-删除重复字符-py"><h2 class="file-name">删除重复字符.py</h2><pre><code class="language-python">a=input()
-
-b=[]
-
-c=len(a)
-
-for d in  range(c):
-
-    e=a[d]
-
-    f=len(b)
-
-    i=1
-
-    for g in range(f):
-
-        h=b[g]
-
-        if(h==e):
-
-            i=0
-
-    if(i==0):
-
-        pass
-
-    else:
-
-        b.append(e)
-
-j=&quot;&quot;.join(b)
-
-print(j)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-判断可逆素数-py"><h2 class="file-name">判断可逆素数.py</h2><pre><code class="language-python"># 判断一个数是否为素数的函数
-
-def is_prime(num):
-
-    if num &lt; 2:
-
-        return False
-
-    for i in range(2, int(num ** 0.5) + 1):
-
-        if num % i == 0:
-
-            return False
-
-    return True
-
-
-
-
-
-# 判断一个数是否为可逆素数的函数
-
-def is_reversible_prime(num):
-
-    if not is_prime(num):
-
-        return False
-
-    reversed_num = int(str(num)[::-1])
-
-    return is_prime(reversed_num)
-
-
-
-
-
-num = int(input())
-
-if is_reversible_prime(num):
-
-    print(&quot;yes&quot;)
-
-else:
-
-    print(&quot;no&quot;)
-
-
-
-    
-
-
-
-
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-判断素数-py"><h2 class="file-name">判断素数.py</h2><pre><code class="language-python">def a(b):
-
-    c=1
-
-    if(b&lt;=1):
-
-        print(0)
-
-    elif(b==2):
-
-        print(1)
-
-    else:
-
-        for d in range(2,b):
-
-            if(b%d==0):
-
-                c=0
-
-                break
-
-        if(c==0):
-
-            print(0)
-
-        else:
-
-            print(1)
-
-e=int(input())
-
-f=a(e)
-
-
-
-
-
-
-
-    
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-利用turtle绘制六角星-py"><h2 class="file-name">利用turtle绘制六角星.py</h2><pre><code class="language-python">import turtle as a
-
-for b in range(6):
-
-    a.fillcolor(&quot;yellow&quot;)
-
-    a.begin_fill()
-
-    a.forward(10)
-
-    a.right(120)
-
-    a.forward(10)
-
-    a.right(120)
-
-    a.forward(10)
-
-    a.end_fill()
-
-    a.penup()
-
-    a.right(120)
-
-    a.forward(10)
-
-    a.pendown()
-
-    a.left(60)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-前驱-后继字符-py"><h2 class="file-name">前驱、后继字符.py</h2><pre><code class="language-python">x=input()
-
-
-
-pre=ord(x)-1
-
-aft=ord(x)+1
-
-
-
-print(chr(pre),x,chr(aft),end=&quot; &quot;)
-
-print(&quot;\n&quot;)
-
-print(pre,ord(x),aft)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-加密文件-文件版--py"><h2 class="file-name">加密文件（文件版）.py</h2><pre><code class="language-python">import os
-
-c=input()
-
-d=len(c)
-
-e={}
-
-m=97
-
-for f in range(d):
-
-    g=c[f]
-
-    j=0
-
-    for h in range(f):
-
-        i=c[h]
-
-        if(i==g):
-
-            j=1
-
-    if(j==0):
-
-        k=chr(m)
-
-        m=m+1
-
-        l={k:g}
-
-        e.update(l)
-
-for n in range(122,96,-1):
-
-    o=chr(n)
-
-    j=0
-
-    for p in range(d):
-
-        g=c[p]
-
-        if(o==g):
-
-            j=1
-
-    if(j==0):
-
-        k=chr(m)
-
-        m=m+1
-
-        l={k:o}
-
-        e.update(l)
-
-a=open(&quot;encrypt.txt&quot;)
-
-b=a.read()
-
-q=len(b)
-
-s=&quot;&quot;
-
-for r in range(q):
-
-    g=b[r]
-
-    if(g.isalpha()==True):
-
-        s=s+e.get(g)
-
-    else:
-
-        s=s+g
-
-u=open(&quot;output.txt&quot;,&quot;w+&quot;)
-
-u.write(s)
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-单if-py"><h2 class="file-name">单if.py</h2><pre><code class="language-python">x = int(input())
-
-
-
-if x &gt; 200:
-
-    print(&quot;out of 200!&quot;)
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-各位数字和-py"><h2 class="file-name">各位数字和.py</h2><pre><code class="language-python">def a(b):
-
-    c=len(b)
-
-    e=0
-
-    for d in range(c):
-
-        h=int(b[d])
-
-        e=e+h
-
-    return e
-
-f=input()
-
-g=a(f)
-
-print(g)
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-回文判断-py"><h2 class="file-name">回文判断.py</h2><pre><code class="language-python">a=input()
-
-b=a[::-1]
-
-if(a==b):
-
-    print(&quot;Yes&quot;)
-
-else:
-
-    print(&quot;No&quot;)
-
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-回文数-py"><h2 class="file-name">回文数.py</h2><pre><code class="language-python">def a(b,c):
-
-    for d in range(b,c+1):
-
-        h=str(d)
-
-        e=h[::-1]
-
-        if(e==h):
-
-            print(d)
-
-f,g=map(int,input().split(&quot; &quot;))
-
-a(f,g)
-
-
-
-    
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-在字典中寻找最高分-py"><h2 class="file-name">在字典中寻找最高分.py</h2><pre><code class="language-python">
-
-names_input = input().strip()
-
-scores_input = input().strip()
-
-
-
-# 处理姓名和分数
-
-names = [name.strip() for name in names_input.split(&#x27;,&#x27;)]
-
-scores = [int(score.strip()) for score in scores_input.split(&#x27;,&#x27;)]
-
-
-
-# 组合成字典
-
-score_dict = dict(zip(names, scores))
-
-
-
-# 找出最高分的学生
-
-max_score = max(score_dict.values())
-
-max_student = [name for name, score in score_dict.items() if score == max_score][0]
-
-
-
-# 输出结果
-
-print(f&quot;{max_student}, {max_score}&quot;)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-基于turtle库自定义绘制圆形函数来绘制同心彩色圆形-py"><h2 class="file-name">基于turtle库自定义绘制圆形函数来绘制同心彩色圆形.py</h2><pre><code class="language-python">def a(b,c,d,e,f,g):
-
-    import turtle as h
-
-    h.penup()
-
-    h.goto(b,c-d)
-
-    h.pendown()
-
-    h.fillcolor(e)
-
-    h.begin_fill()
-
-    h.circle(d)
-
-    h.end_fill()
-
-i=[&quot;purple&quot;,&quot;red&quot;,&quot;blue&quot;,&quot;yellow&quot;,&quot;orange&quot;,&quot;coral&quot;,&quot;brown&quot;,&quot;yellow&quot;,&quot;fuchsia&quot;]
-
-for j in range(1,10):
-
-    k=10-j
-
-    l=k-1
-
-    a(0,0,k*10,i[l],0,0)
-
-    
-
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-天天向上的力量-C-py"><h2 class="file-name">天天向上的力量 C.py</h2><pre><code class="language-python">n = float(input())*0.001
-
-i = j = 0
-
-x = y = 1.0
-
-
-
-while i &lt; 365:
-
-    x *= 1+n
-
-    i += 1
-
-
-
-while j &lt; 365:
-
-    y *= 1-n
-
-    j += 1
-
-
-
-z = x/y
-
-
-
-print(&quot;{:.2f},{:.2f},{:.0f}&quot;.format(x, y, z))
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-字符串偶数位置截取输出-py"><h2 class="file-name">字符串偶数位置截取输出.py</h2><pre><code class="language-python">x = input()
-
-y = x.lower()
-
-z = y[::2]
-
-
-
-print(z[::-1])
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-字符串合并与拆分-py"><h2 class="file-name">字符串合并与拆分.py</h2><pre><code class="language-python">a=input().split(&quot;,&quot;)
-
-d=&quot;&quot;.join(a)
-
-e=d.upper()
-
-b=list(e)
-
-print(e)
-
-print(b)
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-字符串拼接-py"><h2 class="file-name">字符串拼接.py</h2><pre><code class="language-python">A=input().strip()
-
-B=input().strip()
-
-result=&quot;[Prefix]&quot;+A+B+&quot;[Suffix]&quot;
-
-print(result)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-安全生产风险评估-py"><h2 class="file-name">安全生产风险评估.py</h2><pre><code class="language-python">def calculate_risk(device_risk, operation_risk, environment_risk):
-    total_risk = device_risk + operation_risk + environment_risk
-    if total_risk &lt; 15:
-        return &quot;Low Risk&quot;
-    elif 15 &lt;= total_risk &lt; 25:
-        return &quot;Medium Risk&quot;
-    else:
-        return &quot;High Risk&quot;
-
-# 获取用户输入
-device = int(input())
-operation = int(input())
-environment = int(input())
-
-# 计算并输出风险等级
-risk_level = calculate_risk(device, operation, environment)
-print(risk_level)    
-</code></pre></article><article class="python-file" id="file-Pthon实验题-工资-py"><h2 class="file-name">工资.py</h2><pre><code class="language-python">a=float(input())
-
-if(a&lt;1000):
-
-    print(&#x27;{:.2f}&#x27;.format(a))
-
-elif(1000&lt;=a&lt;2000):
-
-    print(&#x27;{:.2f}&#x27;.format(0.9*a))
-
-elif(2000&lt;=a&lt;3000):
-
-    print(&#x27;{:.2f}&#x27;.format(0.85*a))
-
-elif(3000&lt;=a&lt;4000):
-
-    print(&#x27;{:.2f}&#x27;.format(0.8*a))
-
-else:
-
-    print(&#x27;{:.2f}&#x27;.format(0.75*a))
-
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-找最大最小整数-py"><h2 class="file-name">找最大最小整数.py</h2><pre><code class="language-python">a=int(input())
-
-b=map(int,input().split(&quot; &quot;))
-
-c=list(b)
-
-d=max(c)
-
-e=min(c)
-
-print(d,e)
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-换钱的交易-py"><h2 class="file-name">换钱的交易.py</h2><pre><code class="language-python">a=int(input())
-
-b=100000*a
-
-d=0
-
-for c in range(a):
-
-    d=d+2**c
-
-print(b)
-
-print(d)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-摄氏华氏温度转换-py"><h2 class="file-name">摄氏华氏温度转换.py</h2><pre><code class="language-python">c = float(input())
-f = c*9/5+32
-print(&quot;{:.1f}&quot;.format(f))
-</code></pre></article><article class="python-file" id="file-Pthon实验题-数值翻转-py"><h2 class="file-name">数值翻转.py</h2><pre><code class="language-python">a=input()
-
-b=a[::-1]
-
-print(b)
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-数字排序-py"><h2 class="file-name">数字排序.py</h2><pre><code class="language-python">arr = input().split()
-
-n = len(arr)
-
-
-
-i = j = 0
-
-
-
-while(i &lt; n):
-
-    minIndex = i
-
-    j = i+1
-
-    while(j &lt; n):
-
-        if(float(arr[j]) &lt; float(arr[minIndex])):
-
-            minIndex = j
-
-        j += 1
-
-    arr[i], arr[minIndex] = arr[minIndex], arr[i]
-
-    i += 1
-
-
-
-print(arr[0]+&quot; &quot;+arr[1]+&quot; &quot;+arr[2])
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-整数各位数字求和-非函数版--py"><h2 class="file-name">整数各位数字求和（非函数版）.py</h2><pre><code class="language-python">x = input()
-
-s = 0
-
-
-
-for c in x:
-
-    s += int(c)
-
-
-
-print(s)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-整数合并-非函数版--py"><h2 class="file-name">整数合并（非函数版）.py</h2><pre><code class="language-python">a,b=input().split(&quot; &quot;)
-
-c=a[0]
-
-d=a[1]
-
-e=b[0]
-
-f=b[1]
-
-g=d+f+c+e
-
-h=int(g)
-
-print(h)
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-文件复制-py"><h2 class="file-name">文件复制.py</h2><pre><code class="language-python">import shutil as a
-
-a.copyfile(&quot;filecopy.in&quot;,&quot;filecopy.out&quot;)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-时钟指针-py"><h2 class="file-name">时钟指针.py</h2><pre><code class="language-python">a,b=input().split(&quot;:&quot;)
-
-c=int(a)
-
-d=int(b)
-
-e=c*30+d*0.5
-
-f=d*6
-
-g=e-f
-
-if(g&lt;0 and g&gt;-180):
-
-    g=0-g
-
-elif(g&gt;360):
-
-    g=g-360
-
-elif(g&gt;180 and g&lt;=360):
-
-    g=360-g
-
-print(&quot;{:.3f}&quot;.format(g))
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-最大小值-py"><h2 class="file-name">最大小值.py</h2><pre><code class="language-python">a=list(input().split(&#x27; &#x27;))
-
-b=max(a)
-
-c=min(a)
-
-print(b,c)
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-求三角形面积-py"><h2 class="file-name">求三角形面积.py</h2><pre><code class="language-python">import math
-
-
-
-a, b, c = input().split()
-
-
-
-a = float(a)
-
-b = float(b)
-
-c = float(c)
-
-
-
-s = (a+b+c)/2
-
-sum = float(s*(s-a)*(s-b)*(s-c))
-
-ans = math.sqrt(sum)
-
-
-
-print(&quot;{:.3f}&quot;.format(ans))
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-求正整数数字和2-py"><h2 class="file-name">求正整数数字和2.py</h2><pre><code class="language-python">a=int(input())
-b=a/100
-c=a/10
-d=int(b)
-e=int(c)
-f=e-10*d
-g=int(f)
-h=a-e*10
-i=h+g+d
-print(i)
-</code></pre></article><article class="python-file" id="file-Pthon实验题-求水仙花数-py"><h2 class="file-name">求水仙花数.py</h2><pre><code class="language-python">a=int(input())
-
-for i in range(100,a+1):
-
-    b=str(i)
-
-    c=int(b[0])
-
-    d=int(b[1])
-
-    e=int(b[2])
-
-    f=c*c*c+d*d*d+e*e*e
-
-    if(i==f):
-
-        print(i)
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-火灾应急响应-py"><h2 class="file-name">火灾应急响应.py</h2><pre><code class="language-python"># 读取输入
-
-area = input().strip()
-
-severity = input().strip()
-
-trapped = input().strip()
-
-
-
-# 判断响应级别
-
-if severity in [&#x27;High&#x27;, &#x27;Medium&#x27;]:
-
-    if trapped == &#x27;Yes&#x27;:
-
-        response = &#x27;Level 1 Response&#x27;
-
-    else:
-
-        response = &#x27;Level 2 Response&#x27;
-
-else: # Low
-
-    if trapped == &#x27;Yes&#x27;:
-
-        response = &#x27;Level 4 Response&#x27;
-
-    else:
-
-        response = &#x27;Level 3 Response&#x27;
-
-
-
-# 输出结果
-
-print(response)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-生兔子问题-递归思想--py"><h2 class="file-name">生兔子问题(递归思想).py</h2><pre><code class="language-python">def sum(n):
-
-    if n==1 or n==2:
-
-        return 1
-
-    else:
-
-        return sum(n-1)+sum(n-2)
-
-x=int(input())
-
-a=sum(x)
-
-print(a)
-
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-简易计算器-py"><h2 class="file-name">简易计算器.py</h2><pre><code class="language-python">a,b,c=input().split()
-
-d=int(a)
-
-e=int(b)
-
-if(c==&quot;*&quot;):
-
-    print(d*e)
-
-elif(c==&quot;+&quot;):
-
-    print(d+e)
-
-elif(c==&quot;-&quot;):
-
-    print(d-e)
-
-elif(c==&quot;/&quot;and d%e==0):
-
-    print(int(d/e))
-
-else:
-
-    print(&#x27;{:.2f}&#x27;.format(d/e))
-
-    
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-素数判断-非函数版--py"><h2 class="file-name">素数判断（非函数版）.py</h2><pre><code class="language-python">a=int(input())
-
-c=1
-
-if(a&lt;=1):
-
-    print(0)
-
-elif(a==2):
-
-    print(1)
-
-else:
-
-    for b in range(2,a):
-
-        if(a%b==0):
-
-            c=0
-
-            break
-
-    if(c==0):
-
-        print(c)
-
-    else:
-
-        print(1)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-线性计算圆的面积和周长-py"><h2 class="file-name">线性计算圆的面积和周长.py</h2><pre><code class="language-python">radius=float(input())
-
-pi=3.14
-
-area=pi*radius**2
-
-circumference=2*pi*radius
-
-print(&quot;{:.2f}&quot;.format(area))
-
-print(&quot;{:.2f}&quot;.format(circumference))
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-绘制彩色标靶盘-py"><h2 class="file-name">绘制彩色标靶盘.py</h2><pre><code class="language-python">import turtle as a
-
-c=[&quot;purple&quot;,&quot;red&quot;,&quot;blue&quot;,&quot;yellow&quot;,&quot;orange&quot;,&quot;coral&quot;,&quot;brown&quot;,&quot;yellow&quot;,&quot;fuchsia&quot;]
-
-for b in range(1,10):
-
-    d=10-b
-
-    e=d-1
-
-    a.penup()
-
-    a.goto(0,b*10)
-
-    a.pendown()
-
-    a.fillcolor(c[e])
-
-    a.begin_fill()
-
-    a.circle(d*10)
-
-    a.end_fill()
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-统计文件中单词-字符数-py"><h2 class="file-name">统计文件中单词、字符数.py</h2><pre><code class="language-python">a=open(&quot;in.txt&quot;)
-
-b=a.read()
-
-c=len(b)
-
-f=0
-
-g=0
-
-for d in range(c):
-
-    e=b[d]
-
-    if(e.isalpha()==True and f==0):
-
-        g=g+1
-
-        f=1
-
-    elif(e.isalpha()==True and f==1):
-
-        pass
-
-    else:
-
-        f=0
-
-print(g,c-1)
-
-        
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-自动生成列表-py"><h2 class="file-name">自动生成列表.py</h2><pre><code class="language-python">a,b=map(int,input().split())
-
-d=[]
-
-e=0
-
-for x in range(a,b+1,2):
-
-    d.append(x)
-
-    e=e+1
-
-print(d)
-
-print(e)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-英文诗歌统计-py"><h2 class="file-name">英文诗歌统计.py</h2><pre><code class="language-python">x=&#x27;&#x27;&#x27;All that doth flow we cannot liquid name
-
-
-
-Or else would fire and water be the same;
-
-
-
-But that is liquid which is moist and wet
-
-
-
-Fire that property can never get.
-
-
-
-Then &#x27;tis not cold that doth the fire put out
-
-
-
-But &#x27;tis the wet that makes it die, no doubt.&#x27;&#x27;&#x27;
-
-print(len(x))
-
-print(x.find(&#x27;the&#x27;))
-
-print(x.rfind(&#x27;the&#x27;))
-
-print(x.count(&#x27;the&#x27;))
-
-print(x.isalpha())
-
-print(x.isdigit())
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-蒙特卡洛法求圆周率-py"><h2 class="file-name">蒙特卡洛法求圆周率.py</h2><pre><code class="language-python">import random
-
-def estimate_pi(n):
-    random.seed(12345)  # 设置随机种子以确保结果可重现
-    inside = 0
-    for _ in range(n):
-        x = random.random()
-        y = random.random()
-        if x**2 + y**2 &lt;= 1:
-            inside += 1
-    return 4 * inside / n
-
-# 获取用户输入
-n = int(input())
-
-# 计算并输出估计的π值
-pi_estimate = estimate_pi(n)
-print(f&quot;{pi_estimate:.6f}&quot;)    
-</code></pre></article><article class="python-file" id="file-Pthon实验题-计算π值-迭代N次--py"><h2 class="file-name">计算π值（迭代N次）.py</h2><pre><code class="language-python">a=int(input())
-
-c=0
-
-for b in range(1,a+1):
-
-    c=c+(1/(2*b-1)*(-1)**b)
-
-d=4*c
-
-d=0-d
-
-print(&quot;{:.8f}&quot;.format(d))
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-计算平均值-py"><h2 class="file-name">计算平均值.py</h2><pre><code class="language-python">x, y, z = input().split()
-
-x = int(x)
-
-y = int(y)
-
-z = int(z)
-
-sum = x+y+z
-
-average = (x+y+z)/3
-
-
-
-print(sum)
-
-print(&quot;{:.2f}&quot;.format(average))
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-计算年龄-py"><h2 class="file-name">计算年龄.py</h2><pre><code class="language-python">a,b,c=input().split(&quot;.&quot;)
-
-d,e,f=input().split(&quot;.&quot;)
-
-A=int(a)
-
-B=int(b)
-
-C=int(c)
-
-D=int(d)
-
-E=int(e)
-
-F=int(f)
-
-G=D-A
-
-if(E&lt;B):
-
-    G=G-1
-
-elif(E==B and F&lt;C):
-
-    G=G-1
-
-print(G)    
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-说句心里话-py"><h2 class="file-name">说句心里话.py</h2><pre><code class="language-python">str1=input()
-
-str2=input()
-
-print(str1+&quot;,you are,&quot;+str2)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-读取轨迹文件实现turtle绘图-py"><h2 class="file-name">读取轨迹文件实现turtle绘图.py</h2><pre><code class="language-python">import turtle
-
-import linecache as c
-
-for b in range(2,9):
-
-    d=c.getline(&quot;turtledata.txt&quot;,b)
-
-    f=d[:-1]
-
-    e=f.split(&quot;,&quot;)
-
-    e=list(map(int,e))
-
-    if(e[0]==0):
-
-        turtle.left(e[1])
-
-    else:
-
-        turtle.right(e[1])
-
-    turtle.colormode(255)
-
-    turtle.color(e[3],e[4],e[5])
-
-    turtle.pensize(e[6])
-
-    turtle.forward(e[2])
-
-    
-
-
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-购物车总价计算-py"><h2 class="file-name">购物车总价计算.py</h2><pre><code class="language-python">def calculate_total(products):
-
-    total = 0
-
-    for product in products:
-
-        total += product[1]
-
-    return &quot;{:.1f}&quot;.format(total)
-
-products = eval(input())
-
-result = calculate_total(products)
-
-print(result)
-
-
-</code></pre></article><article class="python-file" id="file-Pthon实验题-输出下一秒-py"><h2 class="file-name">输出下一秒.py</h2><pre><code class="language-python">#输出当前时间下一秒
-
-h,min,sec=input().split(&quot;:&quot;)
-
-
-
-sec1=int(sec)
-
-min1=int(min)
-
-h1=int(h)
-
-
-
-sec1+=1
-
-
-
-if(sec1==60):
-
-    min1+=1
-
-    sec1=0
-
-    if(min1==60):
-
-       h1+=1
-
-       min1=0
-
-       if(h1==24):
-
-          h1=0
-
-
-
-print(h1,min1,sec1,sep=&quot;:&quot;)
-
-
-
-
-</code></pre></article></section>
+    <section class="repo-panel" aria-labelledby="repo-title">
+      <h2 id="repo-title">连接 GitHub 仓库</h2>
+      <form id="repo-form" class="repo-form">
+        <div class="field"><label for="repository">仓库（owner/repository）</label><input id="repository" name="repository" placeholder="例如：octocat/Hello-World" autocomplete="off" required></div>
+        <div class="field"><label for="branch">分支</label><input id="branch" name="branch" placeholder="main" autocomplete="off"></div>
+        <button id="load-button" class="load-button" type="submit">读取代码 ✦</button>
+      </form>
+      <p id="status" class="status" role="status" aria-live="polite">正在识别 GitHub Pages 仓库…</p>
+    </section>
+    <section id="document" aria-live="polite"><p class="empty">请输入公开仓库，或部署到 GitHub Pages 后自动读取当前仓库。</p></section>
   </main>
 </div>
+<script>
+(() => {
+  // 自定义域名或非标准 Pages 地址可在此预先填写；常规 owner.github.io/repository 地址会自动识别。
+  const SITE_CONFIG = { repository: '', branch: '' };
+  const apiRoot = 'https://api.github.com';
+  const rawRoot = 'https://raw.githubusercontent.com';
+  const codeExtensions = new Set([
+    'py', 'pyw', 'js', 'jsx', 'mjs', 'cjs', 'ts', 'tsx', 'vue', 'svelte',
+    'html', 'htm', 'css', 'scss', 'sass', 'less', 'json', 'jsonc', 'xml',
+    'yaml', 'yml', 'toml', 'ini', 'java', 'kt', 'kts', 'go', 'rs', 'c', 'h',
+    'cc', 'cpp', 'cxx', 'hh', 'hpp', 'cs', 'php', 'rb', 'swift', 'dart',
+    'sh', 'bash', 'zsh', 'fish', 'ps1', 'bat', 'cmd', 'sql', 'lua', 'r',
+    'pl', 'ex', 'exs', 'erl', 'hrl', 'hs', 'fs', 'fsx', 'gradle', 'graphql',
+    'gql', 'proto', 'tf', 'sol', 'asm', 'md', 'markdown'
+  ]);
+  const codeNames = new Set([
+    'Dockerfile', 'Makefile', 'CMakeLists.txt', 'Rakefile', 'Gemfile',
+    'Procfile', 'Vagrantfile', '.gitignore', '.gitattributes', '.editorconfig',
+    'requirements.txt', 'pyproject.toml', 'package.json', 'tsconfig.json'
+  ]);
+  const form = document.querySelector('#repo-form');
+  const repositoryInput = document.querySelector('#repository');
+  const branchInput = document.querySelector('#branch');
+  const loadButton = document.querySelector('#load-button');
+  const status = document.querySelector('#status');
+  const navigation = document.querySelector('#navigation');
+  const documentRoot = document.querySelector('#document');
+  let loadVersion = 0;
+
+  const encodePath = (path) => path.split('/').map(encodeURIComponent).join('/');
+  const setStatus = (message, state = '') => { status.textContent = message; status.dataset.state = state; };
+  const setLoading = (loading) => { loadButton.disabled = loading; loadButton.textContent = loading ? '读取中…' : '读取代码 ✦'; };
+
+  function inferRepository() {
+    const query = new URLSearchParams(window.location.search);
+    if (query.get('repo')) return { repository: query.get('repo'), branch: query.get('branch') || '' };
+    if (SITE_CONFIG.repository) return SITE_CONFIG;
+    const hostMatch = window.location.hostname.match(/^([^.:]+)\.github\.io$/i);
+    if (!hostMatch) return null;
+    const owner = hostMatch[1];
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    return { repository: `${owner}/${pathParts[0] || `${owner}.github.io`}`, branch: '' };
+  }
+
+  function parseRepository(value) {
+    const parts = value.trim().replace(/^https?:\/\/github\.com\//i, '').replace(/\.git$/i, '').split('/').filter(Boolean);
+    if (parts.length !== 2) throw new Error('仓库格式应为 owner/repository。');
+    return { owner: parts[0], repo: parts[1], repository: `${parts[0]}/${parts[1]}` };
+  }
+
+  async function githubJson(url) {
+    const response = await fetch(url, { headers: { Accept: 'application/vnd.github+json' } });
+    if (!response.ok) {
+      const detail = await response.json().catch(() => ({}));
+      const reset = response.headers.get('x-ratelimit-reset');
+      const rateHint = response.status === 403 && reset ? ` API 限流，请稍后重试。` : '';
+      throw new Error(detail.message ? `${detail.message}${rateHint}` : `GitHub 请求失败（${response.status}）。`);
+    }
+    return response.json();
+  }
+
+  function buildTree(files) {
+    const root = { dirs: new Map(), files: [] };
+    files.forEach((file) => {
+      const parts = file.path.split('/');
+      let node = root;
+      parts.slice(0, -1).forEach((folder) => {
+        if (!node.dirs.has(folder)) node.dirs.set(folder, { dirs: new Map(), files: [] });
+        node = node.dirs.get(folder);
+      });
+      node.files.push(file);
+    });
+    return root;
+  }
+
+  const orderedEntries = (map) => [...map.entries()].sort(([a], [b]) => a.localeCompare(b, 'zh-CN'));
+  const orderedFiles = (files) => [...files].sort((a, b) => a.path.localeCompare(b.path, 'zh-CN'));
+  const anchorFor = (path) => `file-${path.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+  const isCodeFile = (path) => {
+    const name = path.split('/').at(-1);
+    if (codeNames.has(name)) return true;
+    const dot = name.lastIndexOf('.');
+    return dot > 0 && codeExtensions.has(name.slice(dot + 1).toLowerCase());
+  };
+  const languageFor = (path) => {
+    const name = path.split('/').at(-1).toLowerCase();
+    if (name === 'dockerfile') return 'dockerfile';
+    const extension = name.includes('.') ? name.split('.').at(-1) : '';
+    return extension || 'text';
+  };
+
+  function createCopyButton(code) {
+    const button = document.createElement('button');
+    button.className = 'copy-button';
+    button.type = 'button';
+    button.disabled = true;
+    button.setAttribute('aria-label', '复制代码');
+    button.innerHTML = '<span class="copy-icon" aria-hidden="true">⧉</span><span>加载中</span>';
+    button.addEventListener('click', async () => {
+      const text = code.textContent;
+      let copied = false;
+      try {
+        if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); copied = true; }
+        else copied = fallbackCopy(text);
+      } catch (_) { copied = fallbackCopy(text); }
+      button.classList.remove('is-copied', 'is-failed');
+      button.classList.add(copied ? 'is-copied' : 'is-failed');
+      button.querySelector('span:last-child').textContent = copied ? '已复制！' : '复制失败';
+      window.setTimeout(() => { button.classList.remove('is-copied', 'is-failed'); button.querySelector('span:last-child').textContent = '复制'; }, 1800);
+    });
+    return button;
+  }
+
+  function fallbackCopy(text) {
+    const area = document.createElement('textarea');
+    area.value = text; area.setAttribute('readonly', '');
+    area.style.position = 'fixed'; area.style.opacity = '0';
+    document.body.appendChild(area); area.select();
+    const copied = document.execCommand('copy'); area.remove();
+    return copied;
+  }
+
+  function renderTree(tree) {
+    const navList = document.createElement('ul');
+    const content = document.createDocumentFragment();
+    const fileViews = [];
+    function renderNav(node, list) {
+      orderedEntries(node.dirs).forEach(([folder, child]) => {
+        const item = document.createElement('li'); const details = document.createElement('details');
+        details.className = 'nav-folder-details'; details.open = true;
+        const summary = document.createElement('summary'); const label = document.createElement('span');
+        label.className = 'nav-folder'; label.textContent = folder; summary.appendChild(label); details.appendChild(summary);
+        const nested = document.createElement('ul'); renderNav(child, nested); details.appendChild(nested); item.appendChild(details); list.appendChild(item);
+      });
+      orderedFiles(node.files).forEach((file) => {
+        const item = document.createElement('li'); const link = document.createElement('a');
+        link.href = `#${anchorFor(file.path)}`; link.textContent = file.path.split('/').at(-1); item.appendChild(link); list.appendChild(item);
+      });
+    }
+    function renderContent(node, container, depth) {
+      orderedEntries(node.dirs).forEach(([folder, child]) => {
+        const section = document.createElement('details'); section.className = `directory depth-${depth}`; section.open = true;
+        const summary = document.createElement('summary'); const heading = document.createElement(`h${Math.min(depth, 6)}`);
+        heading.textContent = folder; summary.appendChild(heading); section.appendChild(summary);
+        const inside = document.createDocumentFragment();
+        renderContent(child, inside, depth + 1);
+        section.appendChild(inside); container.appendChild(section);
+      });
+      orderedFiles(node.files).forEach((file) => {
+        const article = document.createElement('article'); article.className = 'code-file'; article.id = anchorFor(file.path);
+        const title = document.createElement(`h${Math.min(depth, 6)}`); title.className = 'file-name'; title.textContent = file.path.split('/').at(-1);
+        const pre = document.createElement('pre'); const code = document.createElement('code'); code.className = `language-${languageFor(file.path)} loading-code`; code.textContent = '正在读取代码…';
+        pre.appendChild(code); article.append(title, pre);
+        const button = createCopyButton(code); article.appendChild(button); content.appendChild(article);
+        fileViews.push({ file, code, button });
+      });
+    }
+    renderNav(tree, navList); renderContent(tree, content, 1);
+    navigation.replaceChildren(navList); documentRoot.replaceChildren(content);
+    return fileViews;
+  }
+
+  async function mapConcurrent(items, limit, worker) {
+    let nextIndex = 0;
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (nextIndex < items.length) { const current = nextIndex++; await worker(items[current], current); }
+    }));
+  }
+
+  async function loadRepository(repositoryValue, requestedBranch) {
+    const version = ++loadVersion;
+    let repo;
+    try { repo = parseRepository(repositoryValue); }
+    catch (error) { setStatus(error.message, 'error'); return; }
+    repositoryInput.value = repo.repository;
+    setLoading(true); navigation.textContent = '正在读取目录…'; documentRoot.replaceChildren();
+    try {
+      setStatus('正在读取仓库信息…');
+      const metadata = await githubJson(`${apiRoot}/repos/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}`);
+      const branch = requestedBranch.trim() || metadata.default_branch;
+      branchInput.value = branch;
+      setStatus(`正在获取 ${branch} 分支目录…`);
+      const tree = await githubJson(`${apiRoot}/repos/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}/git/trees/${encodeURIComponent(branch)}?recursive=1`);
+      if (version !== loadVersion) return;
+      if (tree.truncated) throw new Error('仓库目录过大，GitHub 返回的递归目录不完整，无法安全展示。');
+      const files = tree.tree.filter((item) => item.type === 'blob' && isCodeFile(item.path)).sort((a, b) => a.path.localeCompare(b.path, 'zh-CN'));
+      if (!files.length) { navigation.textContent = '未找到代码文件。'; documentRoot.innerHTML = '<p class="empty">该分支中未找到可展示的代码文件。</p>'; setStatus('读取完成：未找到代码文件。', 'success'); return; }
+      const views = renderTree(buildTree(files));
+      let completed = 0;
+      setStatus(`已找到 ${files.length} 个代码文件，正在加载（0/${files.length}）…`);
+      const sourceRef = tree.sha;
+      await mapConcurrent(views, 8, async ({ file, code, button }) => {
+        try {
+          const rawUrl = `${rawRoot}/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.repo)}/${encodeURIComponent(sourceRef)}/${encodePath(file.path)}`;
+          const response = await fetch(rawUrl);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          code.textContent = await response.text(); code.classList.remove('loading-code'); button.disabled = false; button.querySelector('span:last-child').textContent = '复制';
+        } catch (error) {
+          code.textContent = `读取失败：${error.message}`; code.classList.remove('loading-code'); button.querySelector('span:last-child').textContent = '不可复制';
+        } finally {
+          completed += 1;
+          if (version === loadVersion) setStatus(`已找到 ${files.length} 个代码文件，正在加载（${completed}/${files.length}）…`);
+        }
+      });
+      if (version === loadVersion) {
+        const query = new URLSearchParams({ repo: repo.repository, branch });
+        history.replaceState(null, '', `${window.location.pathname}?${query.toString()}`);
+        setStatus(`读取完成：${repo.repository} · ${branch} · ${files.length} 个代码文件`, 'success');
+      }
+    } catch (error) {
+      if (version === loadVersion) {
+        navigation.textContent = '无法读取目录。';
+        documentRoot.innerHTML = '<p class="empty">请确认仓库为公开仓库，名称与分支正确，并稍后重试。</p>';
+        setStatus(`读取失败：${error.message}`, 'error');
+      }
+    } finally { if (version === loadVersion) setLoading(false); }
+  }
+
+  form.addEventListener('submit', (event) => { event.preventDefault(); loadRepository(repositoryInput.value, branchInput.value); });
+  const initial = inferRepository();
+  if (initial) { repositoryInput.value = initial.repository; branchInput.value = initial.branch || ''; loadRepository(initial.repository, initial.branch || ''); }
+  else { setStatus('未识别当前仓库：请输入公开 GitHub 仓库后读取。'); }
+})();
+</script>
 </body>
 </html>
