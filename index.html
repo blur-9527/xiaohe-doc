@@ -18,7 +18,7 @@
   --radius-lg:22px; --radius-md:14px;
 }
 * { box-sizing:border-box; }
-html { scroll-behavior:smooth; }
+html { scroll-padding-top:7rem; }
 body { min-height:100vh; margin:0; overflow-x:hidden; color:var(--ink);
   background:
     radial-gradient(circle at 22% 18%, rgba(255,255,255,.9) 0 2px, transparent 2.6px) 0 0/16px 16px,
@@ -48,7 +48,7 @@ h1 { margin:0; font-family:"ZCOOL KuaiLe","Yu Mincho","Microsoft YaHei",serif; f
 header p { margin:.15rem 0 0; font-weight:600; font-size:.88rem; letter-spacing:.06em; opacity:.95; }
 
 /* ===== 左右布局 ===== */
-.layout { display:flex; align-items:flex-start; gap:1.4rem; max-width:1500px; margin:0 auto; padding:1.6rem clamp(1rem,2.5vw,2.4rem) 2.4rem; }
+.layout { display:flex; align-items:flex-start; gap:1.4rem; max-width:1500px; margin:0 auto; padding:1.6rem clamp(1rem,2.5vw,2.4rem) 9rem; }
 
 /* 左侧目录（可折叠） */
 .sidebar { width:320px; flex:0 0 auto; position:sticky; top:5.6rem; display:flex; flex-direction:column;
@@ -115,7 +115,7 @@ main { min-width:0; flex:1 1 auto; border:1px solid rgba(255,255,255,.85); borde
 .directory > .directory { margin-left:1rem; }
 
 /* 代码文件块 */
-.code-file { position:relative; margin:1.4rem 0 2rem; scroll-margin-top:5.6rem; }
+.code-file { position:relative; margin:1.4rem 0 2rem; scroll-margin-top:7rem; }
 .code-file + .code-file { margin-top:1.7rem; }
 .file-name { margin:0; padding:.68rem 4.9rem .68rem 1rem; color:#fff; border-radius:14px 14px 0 0;
   background:linear-gradient(100deg,#ff8fb8,#b78df0); box-shadow:0 7px 18px rgba(220,130,180,.22);
@@ -257,7 +257,32 @@ code { font-family:inherit; position:relative; z-index:1; }
   navToggle.addEventListener('click', toggleSidebar);
   navMask.addEventListener('click', () => setSidebar(false));
   navigation.addEventListener('click', (event) => {
-    if (event.target.closest('a') && isNarrow()) setSidebar(false);
+    const link = event.target.closest('a');
+    if (!link) return;
+    const hash = link.getAttribute('href');
+    if (hash && hash.startsWith('#')) {
+      const target = document.getElementById(hash.slice(1));
+      if (target) {
+        event.preventDefault();
+
+        // 目标文件可能位于右侧已折叠的目录中，先展开所有父级。
+        let parent = target.parentElement;
+        while (parent) {
+          if (parent.tagName === 'DETAILS') parent.open = true;
+          parent = parent.parentElement;
+        }
+
+        // 展开后再计算位置，避免高度变化造成跳转偏移。
+        requestAnimationFrame(() => {
+          const headerHeight = document.querySelector('header').offsetHeight;
+          const top = target.getBoundingClientRect().top + window.scrollY - headerHeight - 12;
+          window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        });
+
+        if (window.location.hash !== hash) history.replaceState(null, '', hash);
+      }
+    }
+    if (isNarrow()) setSidebar(false);
   });
   window.addEventListener('resize', () => {
     if (isNarrow()) { sidebar.classList.remove('collapsed'); navToggle.classList.remove('is-open'); }
@@ -312,7 +337,13 @@ code { font-family:inherit; position:relative; z-index:1; }
 
   const orderedEntries = (map) => [...map.entries()].sort(([a], [b]) => a.localeCompare(b, 'zh-CN'));
   const orderedFiles = (files) => [...files].sort((a, b) => a.path.localeCompare(b.path, 'zh-CN'));
-  const anchorFor = (path) => `file-${path.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+  // 为每个完整路径生成唯一且稳定的锚点，避免不同文件得到相同 id。
+  const anchorFor = (path) => {
+    const bytes = new TextEncoder().encode(path);
+    let binary = '';
+    bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+    return `file-${btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')}`;
+  };
   const isCodeFile = (path) => {
     const name = path.split('/').at(-1);
     if (codeNames.has(name)) return true;
